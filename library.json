@@ -1,7 +1,7 @@
 {
-  "name": "gbj_filter_running",
-  "keywords": "filtering, running, statistics",
-  "description": "The library provides storing particular amount of subsequent readings in 16 bit resolution and calculates a running statistical value from them, i.e., running median, average, minimum, and maximum.",
+  "name": "gbjFilterRunning",
+  "keywords": "data processing, filtering, running, statistics",
+  "description": "Library for calculating a running statistic value for 16-bit sensor data series. The library provides storing particular amount of subsequent readings in 16 bit resolution and calculates a running statistical value from them, i.e., running median, average, minimum, and maximum.",
   "repository": {
     "type": "git",
     "url": "https://github.com/mrkaleArduinoLib/gbj_filter_running.git"
