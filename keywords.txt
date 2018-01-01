@@ -12,6 +12,7 @@ gbj_filter_running	KEYWORD1
 ##########################################
 init	KEYWORD2
 getStatistic	KEYWORD2
+getLastStatistic	KEYWORD2
 getBufferLen	KEYWORD2
 getReadings	KEYWORD2
 getRunningType	KEYWORD2

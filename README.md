@@ -41,6 +41,7 @@ The library provides calculation of a running statistic value from recent sensor
 - [getValueMax()](#getValueRange)
 - [getBufferLen()](#getBufferLen)
 - [getReadings()](#getReadings)
+- [getLastStatistic()](#getLastStatistic)
 
 
 <a id="gbj_filter_running"></a>
@@ -125,12 +126,13 @@ None
 <a id="getStatistic"></a>
 ## getStatistic()
 #### Description
-The method calculates and returns a new running statistic of a type defined in constuctor parameter [runningType](#prm_runningType) from the current input value and previous running statistics and stores it in the data buffer for the future calculation.
+The method calculates and returns a new running statistic of a type defined in constructor parameter [runningType](#prm_runningType) from the current input value and previous values and stores it in the data buffer for the future calculation.
 
 #### Syntax
     uint16_t getStatistic(uint16_t currentValue);
 
 #### Parameters
+<a id="prm_currentValue"></a>
 - **currentValue**: 16-bit value to be used for calculating a new running statistic.
   - *Valid values*: non-negative integer 0 ~ 65535, but restricted by current filter range
   - *Default value*: none
@@ -140,6 +142,8 @@ Running statistic or recently stored running statistic, if the input value is ou
 
 #### See also
 [gbj_filter_running()](#gbj_filter_running)
+
+[getLastStatistic()](#getLastStatistic)
 
 [Back to interface](#interface)
 
@@ -228,5 +232,27 @@ Actual number of running values of a statistic in the data buffer.
 
 #### See also
 [getBufferLen()](#getBufferLen)
+
+[Back to interface](#interface)
+
+
+<a id="getLastStatistic"></a>
+## getLastStatistic()
+#### Description
+The method returns the recently calculated running statistics without need of new measured value (sample) or recalculation.
+- The same effect can be achieved by inputting the value outside the initial filter in the method [getStatistic()](#getStatistic), if the valid range is narrower than the value space of the [input data](#prm_currentValue).
+- The method is useful if there is no variable used for the running statistic in an application and the recent statistic is needed.
+
+#### Syntax
+    uint16_t getLastStatistic();
+
+#### Parameters
+None
+
+#### Returns
+Recently calculated running statistic.
+
+#### See also
+[getStatistic()](#getStatistic)
 
 [Back to interface](#interface)

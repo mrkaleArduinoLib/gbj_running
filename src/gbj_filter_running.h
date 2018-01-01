@@ -44,10 +44,10 @@
 #define GBJ_FILTER_RUNNING_BUFFER_DEF   5       // Default number of values for running statistics
 
 // Statistics
-#define GBJ_FILTER_RUNNING_MEDIAN   1        // Median as a running statistic
-#define GBJ_FILTER_RUNNING_AVERAGE  2        // Arithmetic mean as a running statistic
-#define GBJ_FILTER_RUNNING_MINIMUM  3        // Minimum as a running statistic
-#define GBJ_FILTER_RUNNING_MAXIMUM  4        // Maximum as a running statistic
+#define GBJ_FILTER_RUNNING_MEDIAN       1        // Median as a running statistic
+#define GBJ_FILTER_RUNNING_AVERAGE      2        // Arithmetic mean as a running statistic
+#define GBJ_FILTER_RUNNING_MINIMUM      3        // Minimum as a running statistic
+#define GBJ_FILTER_RUNNING_MAXIMUM      4        // Maximum as a running statistic
 
 // Macro functions
 #define swapdata(a, b) { if ((a) > (b)){int16_t t = a; a = b; b = t;} }
@@ -137,8 +137,8 @@ bufferLen - Number of running statistics held in the data buffer used for
 
   DESCRIPTION:
   The method calculates and returns a new running statistic from current
-  input value and previous running statistics and stores it in the data
-  buffer for the future calculation.
+  input value and previous values and stores it in the data buffer for the
+  future calculation.
   - The method accepts only values within the valid range defined in the
     constructor.
   - Because every statistical variable (sensor) and its statistical type has
@@ -160,6 +160,7 @@ bufferLen - Number of running statistics held in the data buffer used for
 //------------------------------------------------------------------------------
 // Public getters
 //------------------------------------------------------------------------------
+
 
 /*
   Getter of the actual data buffer length.
@@ -236,6 +237,26 @@ bufferLen - Number of running statistics held in the data buffer used for
   uint16_t getValueMax();
 
 
+  /*
+    Getters of the recently calculated running statictic.
+
+    DESCRIPTION:
+    The method returns the recently calculated running statistics without need
+    of new measured value (sample) or recalculation.
+    - The same effect can be achieved by inputting the value outside the initial
+      filter in the method getStatistic(), if the valid range is narrower than
+      the value space of the input data type.
+    - The method is useful if there is no variable used for the running statistic
+      in an application and the recent statistic is needed.
+
+    PARAMETERS: none
+
+    RETURN:
+    Recently calculated running statistic.
+  */
+    uint16_t getLastStatistic();
+
+
 private:
 //------------------------------------------------------------------------------
 // Private attributes
@@ -244,9 +265,10 @@ private:
   uint16_t _sorter[GBJ_FILTER_RUNNING_BUFFER_MAX];   // Buffer for sorting
   uint16_t _valueMin = GBJ_FILTER_RUNNING_MIN;       // Minimal valid value
   uint16_t _valueMax = GBJ_FILTER_RUNNING_MAX;       // Maximal valid value
-  uint8_t _bufferLen;   // Data buffer length in data items
-  uint8_t _bufferCnt;   // Current number of data items in buffer
-  uint8_t _runningType; // Running statistical type
+  uint16_t _recentStatistic;    // Last calculated running statistic
+  uint8_t _bufferLen;           // Data buffer length in data items
+  uint8_t _bufferCnt;           // Current number of data items in buffer
+  uint8_t _runningType;         // Running statistical type
 
 
 //------------------------------------------------------------------------------

@@ -37,15 +37,18 @@ void gbj_filter_running::init()
 
 
 /* Register data item into the buffer and return running value of the statistic.
- * The most recent (fresh) statistic is always in the 0 index of the buffer.
+ * The most recent (fresh) sample value is always in the 0 index of the buffer.
+ * The most recent (fresh) running statistic is always in the separate attribute.
  */
 uint16_t gbj_filter_running::getStatistic(uint16_t currentValue)
 {
-  uint16_t statistic = _buffer[0];
-  if (currentValue < _valueMin) return statistic;
-  if (currentValue > _valueMax) return statistic;
+  // Sanitize input
+  if (currentValue < _valueMin) return _recentStatistic;
+  if (currentValue > _valueMax) return _recentStatistic;
+  // Process input
   shiftRight(); // Shift buffer for current value and increase _bufferCnt
   _buffer[0] = currentValue;
+  uint16_t statistic;
   switch(_runningType)
   {
     case GBJ_FILTER_RUNNING_MEDIAN:
@@ -63,16 +66,16 @@ uint16_t gbj_filter_running::getStatistic(uint16_t currentValue)
       break;
 
     case GBJ_FILTER_RUNNING_MINIMUM:
-      statistic = _buffer[0];
+      statistic = 0xFFFF;
       for (uint8_t i = 1; i < _bufferCnt; i++) statistic = min(statistic, _buffer[i]);
       break;
 
     case GBJ_FILTER_RUNNING_MAXIMUM:
-      statistic = _buffer[0];
+      statistic = 0;
       for (uint8_t i = 1; i < _bufferCnt; i++) statistic = max(statistic, _buffer[i]);
       break;
   }
-  _buffer[0] = statistic;
+  _recentStatistic = statistic;
   return statistic;
 }
 
@@ -80,11 +83,12 @@ uint16_t gbj_filter_running::getStatistic(uint16_t currentValue)
 //-------------------------------------------------------------------------
 // Getters
 //-------------------------------------------------------------------------
-uint8_t  gbj_filter_running::getBufferLen()   { return _bufferLen; };
-uint8_t  gbj_filter_running::getReadings()    { return _bufferCnt; };
-uint8_t  gbj_filter_running::getRunningType() { return _runningType; };
-uint16_t gbj_filter_running::getValueMin()    { return _valueMin; };
-uint16_t gbj_filter_running::getValueMax()    { return _valueMax; };
+uint8_t  gbj_filter_running::getBufferLen()     { return _bufferLen; };
+uint8_t  gbj_filter_running::getReadings()      { return _bufferCnt; };
+uint8_t  gbj_filter_running::getRunningType()   { return _runningType; };
+uint16_t gbj_filter_running::getValueMin()      { return _valueMin; };
+uint16_t gbj_filter_running::getValueMax()      { return _valueMax; };
+uint16_t gbj_filter_running::getLastStatistic() { return _recentStatistic; };
 
 
 //-------------------------------------------------------------------------
