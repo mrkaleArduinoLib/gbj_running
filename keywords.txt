@@ -10,23 +10,23 @@ gbj_filter_running	KEYWORD1
 ##########################################
 # Methods and Functions (KEYWORD2)
 ##########################################
-init	KEYWORD2
-getStatistic	KEYWORD2
-getLastStatistic	KEYWORD2
 getBufferLen	KEYWORD2
+getBufferLenDef	KEYWORD2
+getBufferLenMax	KEYWORD2
+getBufferLenMin	KEYWORD2
+getFilterMax	KEYWORD2
+getFilterMin	KEYWORD2
 getReadings	KEYWORD2
-getRunningType	KEYWORD2
-getValueMin	KEYWORD2
+getStatistic	KEYWORD2
+getStatisticType	KEYWORD2
 getValueMax	KEYWORD2
+getValueMin	KEYWORD2
+init	KEYWORD2
+setBufferLen	KEYWORD2
+setFilter	KEYWORD2
+setFilterMax	KEYWORD2
+setFilterMin	KEYWORD2
 
 ##########################################
 # Constants (LITERAL1)
 ##########################################
-GBJ_FILTER_RUNNING_VERSION	LITERAL1
-GBJ_FILTER_RUNNING_BUFFER_MIN	LITERAL1
-GBJ_FILTER_RUNNING_BUFFER_MAX	LITERAL1
-GBJ_FILTER_RUNNING_BUFFER_DEF	LITERAL1
-GBJ_FILTER_RUNNING_MEDIAN	LITERAL1
-GBJ_FILTER_RUNNING_AVERAGE	LITERAL1
-GBJ_FILTER_RUNNING_MINIMUM	LITERAL1
-GBJ_FILTER_RUNNING_MAXIMUM	LITERAL1

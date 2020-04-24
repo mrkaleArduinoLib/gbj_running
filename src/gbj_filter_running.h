@@ -20,10 +20,9 @@
   CREDENTIALS:
   Author: Libor Gabaj
   GitHub: https://github.com/mrkaleArduinoLib/gbj_filter_running.git
- */
+*/
 #ifndef GBJ_FILTER_RUNNING_H
 #define GBJ_FILTER_RUNNING_H
-#define GBJ_FILTER_RUNNING_VERSION "GBJ_FILTER_RUNNING 1.0.0"
 
 #if defined(__AVR__)
   #if ARDUINO >= 100
@@ -35,247 +34,181 @@
 #elif defined(PARTICLE)
     #include "Particle.h"
 #endif
+#include <gbj_apphelpers.h>
 
-// Limits
-#define GBJ_FILTER_RUNNING_MIN          0       // Minimal valid sensor data
-#define GBJ_FILTER_RUNNING_MAX          65535   // Maximal valid sensor data
-#define GBJ_FILTER_RUNNING_BUFFER_MIN   3       // Minimal number of values for running statistics
-#define GBJ_FILTER_RUNNING_BUFFER_MAX   11      // Maximal number of values for running statistics
-#define GBJ_FILTER_RUNNING_BUFFER_DEF   5       // Default number of values for running statistics
-
-// Statistics
-#define GBJ_FILTER_RUNNING_MEDIAN       1        // Median as a running statistic
-#define GBJ_FILTER_RUNNING_AVERAGE      2        // Arithmetic mean as a running statistic
-#define GBJ_FILTER_RUNNING_MINIMUM      3        // Minimum as a running statistic
-#define GBJ_FILTER_RUNNING_MAXIMUM      4        // Maximum as a running statistic
 
 // Macro functions
-#define swapdata(a, b) { if ((a) > (b)){int16_t t = a; a = b; b = t;} }
 #define divide(a, b) { (uint16_t)round((float)(a)/(float)(b)) }
 
 
 class gbj_filter_running
 {
-public:
-//------------------------------------------------------------------------------
-// Public methods
-//------------------------------------------------------------------------------
+  public:
+    static const String VERSION;
 
+    enum Statistics
+    {
+      MEDIAN = 1,
+      AVERAGE = 2,
+      MINIMUM = 3,
+      MAXIMUM = 4,
+    };
 
-/*
-  Constructor.
+    /*
+      Constructor.
 
-  DESCRIPTION:
-  Constructor creates the data buffer within a class instance object, which
-  holds a series of running values of particular statistical type.
-  - For each type of running statistic as well as each statistical variable
-    (sensor) a separate instance object has to be created with separated
-    data buffer.
-  - Running values of sensor readings or smoothed sensor readings reduce
-    excesses and extremes in the physical value measurement.
-  - The class may be used for original digital data as well, where
-    the running statistical processing is desirable.
-  - The constructor has all arguments defaulted. If some argument after
-    some defaulted arguments should have a specific value, use corresponding
-    constants in place of those defaulted arguments.
+      DESCRIPTION:
+      Constructor creates the data buffer within a class instance object, which
+      holds a series of running values of particular statistical type.
+      - For each type of running statistic as well as each statistical variable
+        (sensor) a separate instance object has to be created with separated
+        data buffer.
+      - Running values of sensor readings or smoothed sensor readings reduce
+        excesses and extremes in the physical value measurement.
+      - The class may be used for original digital data as well, where
+        the running statistical processing is desirable.
+      - The constructor has all arguments defaulted. If some argument after
+        some defaulted arguments should have a specific value, use corresponding
+        constants in place of those defaulted arguments.
 
-  PARAMETERS:
-  runningType - Type of the running statistic to be calculated.
-                - It has to be one of statistic types defined by macros.
-                - Data type: positive integer
-                - Default value: GBJ_FILTER_RUNNING_AVERAGE
-                - Limited range: GBJ_FILTER_RUNNING_MEDIAN, GBJ_FILTER_RUNNING_AVERAGE,
-                  GBJ_FILTER_RUNNING_MINIMUM, GBJ_FILTER_RUNNING_MAXIMUM
+      PARAMETERS:
+      statisticType - Type of the running statistic to be calculated.
+                      - It has to be one of statistic types defined by constants
+                        in the enumeration Statistics.
+                      - Data type: positive integer
+                      - Default value: AVERAGE
+                      - Limited range: AVERAGE, MEDIAN, MAXIMUM, MINIMUM
 
-valueMax - Maximal valid sensor value for registering.
-           - Data type: non-negative integer
-           - Default value: GBJ_FILTER_RUNNING_MAX
-           - Limited range: GBJ_FILTER_RUNNING_MIN ~ GBJ_FILTER_RUNNING_MAX
-
-valueMin - Minimal valid sensor value for registering.
-           - Data type: non-negative integer
-           - Default value: GBJ_FILTER_RUNNING_MIN
-           - Limited range: GBJ_FILTER_RUNNING_MIN ~ GBJ_FILTER_RUNNING_MAX
-
-bufferLen - Number of running statistics held in the data buffer used for
-            calculating a new running statistic.
-            - For median the buffer length should be odd number. If it
-              is not, the constructor adds 1 to it right before limiting
-              the length in order to make it odd.
-            - The constructor limits the input buffer length to a valid range.
-            - Data type: positive integer
-            - Default value: GBJ_FILTER_RUNNING_BUFFER_DEF
-            - Limited range: GBJ_FILTER_RUNNING_BUFFER_MIN ~ GBJ_FILTER_RUNNING_BUFFER_MAX
-
-  RETURN:
-  Library instance object.
-*/
-  gbj_filter_running( \
-    uint8_t  runningType = GBJ_FILTER_RUNNING_AVERAGE, \
-    uint16_t valueMax    = GBJ_FILTER_RUNNING_MAX, \
-    uint16_t valueMin    = GBJ_FILTER_RUNNING_MIN, \
-    uint8_t  bufferLen   = GBJ_FILTER_RUNNING_BUFFER_DEF);
-
-
-/*
-  Reset all counters and status flags.
-
-  DESCRIPTION:
-  The method initiates all internal counters and status flags of a class
-  instance object to default values as they are right after power up of
-  a microcontroler.
-
-  PARAMETERS: none
-
-  RETURN: none
-*/
-  void init();
-
-
-/*
-  Calculate running statistic for current sensor value.
-
-  DESCRIPTION:
-  The method calculates and returns a new running statistic from current
-  input value and previous values and stores it in the data buffer for the
-  future calculation.
-  - The method accepts only values within the valid range defined in the
-    constructor.
-  - Because every statistical variable (sensor) and its statistical type has
-    to have dedicated class instance, it is unreasonable to dynamicly change
-    the valid range for each sensor value.
-
-  PARAMETERS:
-  currentValue - 16-bit value to be used for calculating a new running statistic.
+      valueMax - Maximal valid sensor value for registering.
                  - Data type: non-negative integer
-                 - Default value: none
+                 - Default value: 65535
                  - Limited range: 0 ~ 65535
 
-  RETURN:
-  New running statistic or the recently stored one if the value is not valid.
-*/
-  uint16_t getStatistic(uint16_t currentValue);
+      valueMin - Minimal valid sensor value for registering.
+                 - Data type: non-negative integer
+                 - Default value: 0
+                 - Limited range: 0 ~ 65535
+
+      bufferLen - Number of running statistics held in the data buffer used for
+                  calculating a new running statistic.
+                  - It should be odd number. If it is not, the constructor adds
+                    1 to it right before limiting the length in order to make it
+                    odd.
+                  - The constructor limits the input buffer length to a valid range.
+                  - Data type: positive integer
+                  - Default value: 5
+                  - Limited range: 3 ~ 11
+
+      RETURN:
+      Library instance object.
+    */
+    gbj_filter_running(
+        uint8_t statisticType = Statistics::AVERAGE,
+        uint16_t valueMax = Limits::FILTER_MAX,
+        uint16_t valueMin = Limits::FILTER_MIN,
+        uint8_t bufferLen = Limits::BUFFERLEN_DEF);
+
+    /*
+      Reset all counters and status flags.
+
+      DESCRIPTION:
+      The method initiates all internal counters and status flags of a class
+      instance object to default values as they are right after power up of
+      a microcontroler.
+
+      PARAMETERS: none
+
+      RETURN: none
+    */
+    inline void init() { _bufferCnt = 0; };
+
+    /*
+      Calculate new running statistic for current sensor value or get last one.
+
+      DESCRIPTION:
+      The method calculates and returns a new running statistic from current
+      input value and previous values and stores it in the data buffer for the
+      future calculation.
+      - The method is overloaded.
+      - If the input argument is provided, the method calculates new running
+        statistic.
+      - If not input argument is provided, the method returns recent calculated
+        statistic value.
+      - The method accepts only values within the valid range defined in the
+        constructor.
+
+      PARAMETERS:
+      currentValue - 16-bit value to be used for calculating a new running statistic.
+                    - Data type: non-negative integer
+                    - Default value: none
+                    - Limited range: 0 ~ 65535
+
+      RETURN:
+      New running statistic or the recently stored one if the value is not valid.
+    */
+    uint16_t getStatistic(uint16_t currentValue);
+    inline uint16_t getStatistic(void) { return _statisticRecent; };
+
+    // Public getters
+    inline uint8_t getStatisticType() { return _statisticType; };
+
+    inline uint8_t getReadings() { return _bufferCnt; };
+    inline uint16_t getValueMin() { return _valueMin; };
+    inline uint16_t getValueMax() { return _valueMax; };
+    //
+    static inline uint16_t getFilterMin() { return Limits::FILTER_MIN; };
+    static inline uint16_t getFilterMax() { return Limits::FILTER_MAX; };
+    //
+    inline uint8_t getBufferLen() { return _bufferLen; };
+    static inline uint8_t getBufferLenMin() { return Limits::BUFFERLEN_MIN; };
+    static inline uint8_t getBufferLenMax() { return Limits::BUFFERLEN_MAX; };
+    static inline uint8_t getBufferLenDef() { return Limits::BUFFERLEN_DEF; };
+
+    // Public setters
+    inline void setFilterMax(uint16_t valueMax)
+    {
+      _valueMax = constrain(valueMax, getFilterMin(), getFilterMax());
+    };
+
+    inline void setFilterMin(uint16_t valueMin)
+    {
+      _valueMin = constrain(valueMin, Limits::FILTER_MIN, Limits::FILTER_MAX);
+    };
+
+    inline void setFilter(uint16_t valueMax, uint16_t valueMin)
+    {
+      setFilterMax(valueMax);
+      setFilterMin(valueMin);
+    };
+
+    inline void setBufferLen(uint8_t bufferLen)
+    {
+      // Adjust buffer length to odd number
+      _bufferLen = bufferLen | 1;
+      _bufferLen = constrain(_bufferLen, getBufferLenMin(), getBufferLenMax());
+    };
 
 
-//------------------------------------------------------------------------------
-// Public getters
-//------------------------------------------------------------------------------
+  private:
+    enum Limits
+    {
+      FILTER_MIN = 0x0000, // Minimal valid sensor data
+      FILTER_MAX = 0xFFFF, // Maximal valid sensor data
+      BUFFERLEN_MIN = 3,   // Minimal valid buffer length
+      BUFFERLEN_MAX = 11,  // Maximal valid buffer length
+      BUFFERLEN_DEF = 5,   // Default buffer length
+    };
 
+    uint16_t _buffer[Limits::BUFFERLEN_MAX]; // Data buffer
+    uint16_t _sorter[Limits::BUFFERLEN_MAX]; // Sorting buffer
+    uint16_t _valueMin;
+    uint16_t _valueMax;
+    uint16_t _statisticRecent;
+    uint8_t _statisticType;
+    uint8_t _bufferLen;
+    uint8_t _bufferCnt;
 
-/*
-  Getter of the actual data buffer length.
-
-  DESCRIPTION:
-  The method returns current length of the data buffer used for calculation.
-  - Usually the returned value is the same as length put to the constructor.
-  - If class has adjusted or limited the input buffer length, the method
-    returns the actual length.
-  - The method is useful, if the length has been put to the constructor as
-    a numeric literal and there is no variable of the length to use it in
-    other statements.
-
-  PARAMETERS: none
-
-  RETURN:
-  Actual length of the data buffer.
-*/
-  uint8_t getBufferLen();
-
-
-/*
-  Getter of the actual number of running statistics.
-
-  DESCRIPTION:
-  The method returns number of running values of a statistic in the
-  data buffer, which are going to be used for calculating a new one.
-  - The calculation of a new running value can be provided before
-    the data buffer is full. In that case the method returns the
-    number less than the length of the data buffer set in the constructor.
-  - After a while after initialization the returned value is same as the length of the data buffer.
-
-  PARAMETERS: none
-
-  RETURN:
-  Actual number of running values of a statistic in the data buffer.
-*/
-  uint8_t getReadings();
-
-
-/*
-  Getter of the actual running statistic type.
-
-  DESCRIPTION:
-  The method returns internal number code of running statistic type for
-  the current instance object.
-  - Returned code is the value of one class constant for running statistic types.
-
-  PARAMETERS: none
-
-  RETURN:
-  One of the constants:
-  - GBJ_FILTER_RUNNING_MEDIAN
-  - GBJ_FILTER_RUNNING_AVERAGE
-  - GBJ_FILTER_RUNNING_MINIMUM
-  - GBJ_FILTER_RUNNING_MAXIMUM
-*/
-  uint8_t getRunningType();
-
-
-/*
-  Getters of the actual minimal and maximal valid sensor value.
-
-  DESCRIPTION:
-  The particular method returns currently set minimal or maximal value valid for
-  registering.
-
-  PARAMETERS: none
-
-  RETURN:
-  Actual minimal or maximal valid value.
-*/
-  uint16_t getValueMin();
-  uint16_t getValueMax();
-
-
-  /*
-    Getters of the recently calculated running statictic.
-
-    DESCRIPTION:
-    The method returns the recently calculated running statistics without need
-    of new measured value (sample) or recalculation.
-    - The same effect can be achieved by inputting the value outside the initial
-      filter in the method getStatistic(), if the valid range is narrower than
-      the value space of the input data type.
-    - The method is useful if there is no variable used for the running statistic
-      in an application and the recent statistic is needed.
-
-    PARAMETERS: none
-
-    RETURN:
-    Recently calculated running statistic.
-  */
-    uint16_t getLastStatistic();
-
-
-private:
-//------------------------------------------------------------------------------
-// Private attributes
-//------------------------------------------------------------------------------
-  uint16_t _buffer[GBJ_FILTER_RUNNING_BUFFER_MAX];   // Data buffer
-  uint16_t _sorter[GBJ_FILTER_RUNNING_BUFFER_MAX];   // Buffer for sorting
-  uint16_t _valueMin = GBJ_FILTER_RUNNING_MIN;       // Minimal valid value
-  uint16_t _valueMax = GBJ_FILTER_RUNNING_MAX;       // Maximal valid value
-  uint16_t _recentStatistic;    // Last calculated running statistic
-  uint8_t _bufferLen;           // Data buffer length in data items
-  uint8_t _bufferCnt;           // Current number of data items in buffer
-  uint8_t _runningType;         // Running statistical type
-
-
-//------------------------------------------------------------------------------
-// Private methods
-//------------------------------------------------------------------------------
-  void sort();          // Sort values in the data buffer in ascending order
-  void shiftRight();    // Shift data buffer to the right
+    void shiftRight();
 };
 
 #endif

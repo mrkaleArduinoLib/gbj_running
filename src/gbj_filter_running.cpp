@@ -1,38 +1,28 @@
 #include "gbj_filter_running.h"
+const String gbj_filter_running::VERSION = "GBJ_FILTER_RUNNING 1.1.0";
 
-
-gbj_filter_running::gbj_filter_running(uint8_t runningType, uint16_t valueMax, uint16_t valueMin, uint8_t bufferLen)
+gbj_filter_running::gbj_filter_running(
+  uint8_t statisticType,
+  uint16_t valueMax,
+  uint16_t valueMin,
+  uint8_t bufferLen)
 {
-  _runningType = runningType;
-  _bufferLen = bufferLen;
-  switch(_runningType)
+  setFilter(valueMax, valueMin);
+  setBufferLen(bufferLen);
+  init();
+  _statisticType = statisticType;
+  switch (getStatisticType())
   {
-    case GBJ_FILTER_RUNNING_AVERAGE:
-    case GBJ_FILTER_RUNNING_MINIMUM:
-    case GBJ_FILTER_RUNNING_MAXIMUM:
-      break;
-
-    case GBJ_FILTER_RUNNING_MEDIAN:
-      _bufferLen = _bufferLen | 1;
+    case Statistics::AVERAGE:
+    case Statistics::MINIMUM:
+    case Statistics::MAXIMUM:
+    case Statistics::MEDIAN:
       break;
 
     default:
-      _runningType = GBJ_FILTER_RUNNING_AVERAGE;
+      _statisticType = Statistics::AVERAGE;
       break;
   }
-  // Sanitize arguments
-  _valueMax  = constrain(valueMax, GBJ_FILTER_RUNNING_MIN, GBJ_FILTER_RUNNING_MAX);
-  _valueMin  = constrain(valueMin, GBJ_FILTER_RUNNING_MIN, GBJ_FILTER_RUNNING_MAX);
-  swapdata(_valueMin, _valueMax); // Sort valid range values
-  _bufferLen = constrain(_bufferLen, GBJ_FILTER_RUNNING_BUFFER_MIN, GBJ_FILTER_RUNNING_BUFFER_MAX);
-  init();
-}
-
-
-// Initialize all status variables
-void gbj_filter_running::init()
-{
-  _bufferCnt = 0;
 }
 
 
@@ -43,87 +33,53 @@ void gbj_filter_running::init()
 uint16_t gbj_filter_running::getStatistic(uint16_t currentValue)
 {
   // Sanitize input
-  if (currentValue < _valueMin) return _recentStatistic;
-  if (currentValue > _valueMax) return _recentStatistic;
-  // Process input
-  shiftRight(); // Shift buffer for current value and increase _bufferCnt
+  if (currentValue < getValueMin() || currentValue > getValueMax())
+    return getStatistic();
+  // Shift buffer for current value and increase _bufferCnt
+  shiftRight();
   _buffer[0] = currentValue;
-  uint16_t statistic;
-  switch(_runningType)
+  switch (getStatisticType())
   {
-    case GBJ_FILTER_RUNNING_MEDIAN:
-      for (uint8_t i = 0; i < _bufferCnt; i++) _sorter[i] = _buffer[i];
-      sort();
+    case Statistics::MEDIAN:
+      for (uint8_t i = 0; i < _bufferCnt; i++)
+        _sorter[i] = _buffer[i];
+      gbj_apphelpers::sort_buble_asc(_sorter, getReadings());
       // Round down median index
-      statistic = _sorter[(_bufferCnt - 1)/2];
+      _statisticRecent = _sorter[(getReadings() - 1) / 2];
       break;
 
-    case GBJ_FILTER_RUNNING_AVERAGE:
-      statistic = 0;
-      for (uint8_t i = 0; i < _bufferCnt; i++) statistic += _buffer[i];
+    case Statistics::AVERAGE:
+      _statisticRecent = 0;
+      for (uint8_t i = 0; i < getReadings(); i++)
+        _statisticRecent += _buffer[i];
       // Round up arithmetic mean
-      statistic = divide(statistic, _bufferCnt);
+      _statisticRecent = divide(_statisticRecent, getReadings());
       break;
 
-    case GBJ_FILTER_RUNNING_MINIMUM:
-      statistic = 0xFFFF;
-      for (uint8_t i = 1; i < _bufferCnt; i++) statistic = min(statistic, _buffer[i]);
+    case Statistics::MINIMUM:
+      _statisticRecent = currentValue;
+      for (uint8_t i = 1; i < getReadings(); i++)
+        _statisticRecent = min(_statisticRecent, _buffer[i]);
       break;
 
-    case GBJ_FILTER_RUNNING_MAXIMUM:
-      statistic = 0;
-      for (uint8_t i = 1; i < _bufferCnt; i++) statistic = max(statistic, _buffer[i]);
+    case Statistics::MAXIMUM:
+      _statisticRecent = currentValue;
+      for (uint8_t i = 1; i < getReadings(); i++)
+        _statisticRecent = max(_statisticRecent, _buffer[i]);
       break;
   }
-  _recentStatistic = statistic;
-  return statistic;
-}
-
-
-//-------------------------------------------------------------------------
-// Getters
-//-------------------------------------------------------------------------
-uint8_t  gbj_filter_running::getBufferLen()     { return _bufferLen; };
-uint8_t  gbj_filter_running::getReadings()      { return _bufferCnt; };
-uint8_t  gbj_filter_running::getRunningType()   { return _runningType; };
-uint16_t gbj_filter_running::getValueMin()      { return _valueMin; };
-uint16_t gbj_filter_running::getValueMax()      { return _valueMax; };
-uint16_t gbj_filter_running::getLastStatistic() { return _recentStatistic; };
-
-
-//-------------------------------------------------------------------------
-// Private methods
-//-------------------------------------------------------------------------
-
-
-// Sort array by bubblesort algorithm in ascending order
-void gbj_filter_running::sort()
-{
-  bool again = true;
-  for(byte i = 0; i < (_bufferCnt - 1) && again; i++)
-  {
-    again = false;
-    for(byte j = _bufferCnt - 1; j > i; --j)
-    {
-      if(_sorter[j] < _sorter[j-1])
-      {
-        uint16_t t = _sorter[j];
-        _sorter[j] = _sorter[j-1];
-        _sorter[j-1] = t;
-        again = true;
-      }
-    }
-  }
+  return getStatistic();
 }
 
 
 // Shift array to the right so that 0 index is reserved for the new value
 void gbj_filter_running::shiftRight()
 {
-  for(byte i = _bufferCnt; i > 0 ; --i)
+  for (byte i = _bufferCnt; i > 0 ; --i)
   {
     // Forget the oldest (most right) value in the buffer if it is full
-    if (i < _bufferLen) _buffer[i] = _buffer[i-1];
+    if (i < _bufferLen)
+      _buffer[i] = _buffer[i-1];
   }
   // Count the freed 0 indexed value. Normally the buffer is full.
   _bufferCnt++;

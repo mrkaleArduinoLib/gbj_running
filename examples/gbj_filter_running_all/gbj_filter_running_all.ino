@@ -18,9 +18,9 @@
   Author: Libor Gabaj
 */
 #include "gbj_filter_running.h"
-#define SKETCH "GBJ_FILTER_RUNNING_ALL 1.0.0"
+#define SKETCH "GBJ_FILTER_RUNNING_ALL 1.1.0"
 
-const unsigned int PERIOD_MEASURE = 3000;      // Time in miliseconds between measurements
+const unsigned int PERIOD_MEASURE = 3000; // Time in miliseconds between measurements
 
 // Limits of random values for mimicking real physical measurement
 const unsigned int SENSOR_DATA_MIN = 0;
@@ -32,19 +32,19 @@ const unsigned int SENSOR_FILTER_MAX = 768;
 
 // Variables and constants for measurement
 unsigned int demoData;
-unsigned int filterAvg, filterMed, filterMin, filterMax;  // Running statistics
-gbj_filter_running RunningAvg = gbj_filter_running(GBJ_FILTER_RUNNING_AVERAGE, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN, GBJ_FILTER_RUNNING_BUFFER_DEF);
-gbj_filter_running RunningMed = gbj_filter_running(GBJ_FILTER_RUNNING_MEDIAN,  SENSOR_FILTER_MAX, SENSOR_FILTER_MIN, GBJ_FILTER_RUNNING_BUFFER_DEF);
-gbj_filter_running RunningMin = gbj_filter_running(GBJ_FILTER_RUNNING_MINIMUM, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN, GBJ_FILTER_RUNNING_BUFFER_DEF);
-gbj_filter_running RunningMax = gbj_filter_running(GBJ_FILTER_RUNNING_MAXIMUM, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN, GBJ_FILTER_RUNNING_BUFFER_DEF);
-
+unsigned int filterAvg, filterMed, filterMin, filterMax; // Running statistics
+gbj_filter_running RunningAvg = gbj_filter_running(gbj_filter_running::AVERAGE, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN);
+gbj_filter_running RunningMed = gbj_filter_running(gbj_filter_running::MEDIAN, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN);
+gbj_filter_running RunningMin = gbj_filter_running(gbj_filter_running::MINIMUM, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN);
+gbj_filter_running RunningMax = gbj_filter_running(gbj_filter_running::MAXIMUM, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN);
 
 void setup()
 {
   Serial.begin(9600);
   Serial.println(SKETCH);
   Serial.println("Libraries:");
-  Serial.println(GBJ_FILTER_RUNNING_VERSION);
+  Serial.println(gbj_filter_running::VERSION);
+  Serial.println(gbj_apphelpers::VERSION);
   Serial.println("---");
   Serial.print("Buffer length: ");
   Serial.println(RunningAvg.getBufferLen());
@@ -52,19 +52,17 @@ void setup()
   Serial.print(RunningAvg.getValueMin());
   Serial.print(" ~ ");
   Serial.println(RunningAvg.getValueMax());
-  Serial.println("Value => Average Median Min Max:");
+  Serial.println("Value => Average Median Min Max Items:");
 }
-
 
 void loop()
 {
-  demoData  = random(SENSOR_DATA_MIN, SENSOR_DATA_MAX + 1);
+  demoData = random(SENSOR_DATA_MIN, SENSOR_DATA_MAX + 1);
   filterAvg = RunningAvg.getStatistic(demoData);
   filterMed = RunningMed.getStatistic(demoData);
   filterMin = RunningMin.getStatistic(demoData);
   filterMax = RunningMax.getStatistic(demoData);
-  if (demoData >= RunningAvg.getValueMin() \
-  &&  demoData <= RunningAvg.getValueMax())
+  if (demoData >= RunningAvg.getValueMin() && demoData <= RunningAvg.getValueMax())
   {
     Serial.print("*");
   }
@@ -77,6 +75,8 @@ void loop()
   Serial.print(filterMin);
   Serial.print(" ");
   Serial.print(filterMax);
+  Serial.print(" ");
+  Serial.print(RunningAvg.getReadings());
   Serial.println();
   delay(PERIOD_MEASURE);
 }

@@ -18,9 +18,9 @@
   Author: Libor Gabaj
 */
 #include "gbj_filter_running.h"
-#define SKETCH "GBJ_FILTER_RUNNING_AVERAGE 1.0.0"
+#define SKETCH "GBJ_FILTER_RUNNING_AVERAGE 1.1.0"
 
-const unsigned int PERIOD_MEASURE = 3000;      // Time in miliseconds between measurements
+const unsigned int PERIOD_MEASURE = 3000; // Time in miliseconds between measurements
 
 // Upper limit of random values for mimicking real physical measurement
 const unsigned int SENSOR_DATA_MAX = 1023;
@@ -34,14 +34,14 @@ void setup()
   Serial.begin(9600);
   Serial.println(SKETCH);
   Serial.println("Libraries:");
-  Serial.println(GBJ_FILTER_RUNNING_VERSION);
+  Serial.println(gbj_filter_running::VERSION);
+  Serial.println(gbj_apphelpers::VERSION);
   Serial.println("---");
   // Print header
   Serial.print("Buffer length: ");
   Serial.println(avgRunning.getBufferLen());
   Serial.println("Data\tAverage\tItems");
 }
-
 
 void loop()
 {
