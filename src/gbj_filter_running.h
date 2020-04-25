@@ -48,10 +48,10 @@ class gbj_filter_running
 
     enum Statistics
     {
-      MEDIAN = 1,
-      AVERAGE = 2,
-      MINIMUM = 3,
-      MAXIMUM = 4,
+      AVERAGE,
+      MEDIAN,
+      MINIMUM,
+      MAXIMUM,
     };
 
     /*
@@ -186,8 +186,16 @@ class gbj_filter_running
       // Adjust buffer length to odd number
       _bufferLen = bufferLen | 1;
       _bufferLen = constrain(_bufferLen, getBufferLenMin(), getBufferLenMax());
+      // Create of adjust data buffer if needed
+      if (_buffer == NULL)
+      {
+        _buffer = (uint16_t *)calloc(getBufferLen(), sizeof(uint16_t));
+      }
+      else if (getBufferLen() != sizeof(_buffer) / sizeof(_buffer[0]))
+      {
+        _buffer = (uint16_t *)realloc(_buffer, getBufferLen() * sizeof(uint16_t));
+      }
     };
-
 
   private:
     enum Limits
@@ -199,8 +207,7 @@ class gbj_filter_running
       BUFFERLEN_DEF = 5,   // Default buffer length
     };
 
-    uint16_t _buffer[Limits::BUFFERLEN_MAX]; // Data buffer
-    uint16_t _sorter[Limits::BUFFERLEN_MAX]; // Sorting buffer
+    uint16_t *_buffer = NULL; // Dynamic data buffer
     uint16_t _valueMin;
     uint16_t _valueMax;
     uint16_t _statisticRecent;

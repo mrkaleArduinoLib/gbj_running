@@ -14,9 +14,9 @@ gbj_filter_running::gbj_filter_running(
   switch (getStatisticType())
   {
     case Statistics::AVERAGE:
+    case Statistics::MEDIAN:
     case Statistics::MINIMUM:
     case Statistics::MAXIMUM:
-    case Statistics::MEDIAN:
       break;
 
     default:
@@ -32,28 +32,30 @@ gbj_filter_running::gbj_filter_running(
  */
 uint16_t gbj_filter_running::getStatistic(uint16_t currentValue)
 {
-  // Sanitize input
   if (currentValue < getValueMin() || currentValue > getValueMax())
     return getStatistic();
-  // Shift buffer for current value and increase _bufferCnt
+  // Make place for current value in the data buffer
   shiftRight();
   _buffer[0] = currentValue;
   switch (getStatisticType())
   {
-    case Statistics::MEDIAN:
-      for (uint8_t i = 0; i < _bufferCnt; i++)
-        _sorter[i] = _buffer[i];
-      gbj_apphelpers::sort_buble_asc(_sorter, getReadings());
-      // Round down median index
-      _statisticRecent = _sorter[(getReadings() - 1) / 2];
-      break;
-
     case Statistics::AVERAGE:
       _statisticRecent = 0;
       for (uint8_t i = 0; i < getReadings(); i++)
         _statisticRecent += _buffer[i];
       // Round up arithmetic mean
       _statisticRecent = divide(_statisticRecent, getReadings());
+      break;
+
+    case Statistics::MEDIAN:
+      uint16_t *sorter;
+      sorter = (uint16_t *)calloc(getReadings(), sizeof(uint16_t));
+      for (uint8_t i = 0; i < getReadings(); i++)
+        sorter[i] = _buffer[i];
+      gbj_apphelpers::sort_buble_asc(sorter, getReadings());
+      // Round down median index
+      _statisticRecent = sorter[(getReadings() - 1) / 2];
+      free(sorter);
       break;
 
     case Statistics::MINIMUM:
@@ -75,13 +77,13 @@ uint16_t gbj_filter_running::getStatistic(uint16_t currentValue)
 // Shift array to the right so that 0 index is reserved for the new value
 void gbj_filter_running::shiftRight()
 {
-  for (byte i = _bufferCnt; i > 0 ; --i)
+  for (byte i = getReadings(); i > 0; --i)
   {
     // Forget the oldest (most right) value in the buffer if it is full
-    if (i < _bufferLen)
+    if (i < getBufferLen())
       _buffer[i] = _buffer[i-1];
   }
   // Count the freed 0 indexed value. Normally the buffer is full.
   _bufferCnt++;
-  _bufferCnt = constrain(_bufferCnt, 0, _bufferLen);
+  _bufferCnt = constrain(getReadings(), 0, getBufferLen());
 }
