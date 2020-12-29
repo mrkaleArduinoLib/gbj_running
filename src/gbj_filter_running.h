@@ -31,8 +31,10 @@
     #include "WProgram.h"
   #endif
   #include <inttypes.h>
+#elif defined(ESP8266) || defined(ESP32)
+  #include <Arduino.h>
 #elif defined(PARTICLE)
-    #include "Particle.h"
+  #include "Particle.h"
 #endif
 #include <gbj_apphelpers.h>
 
@@ -206,6 +208,7 @@ class gbj_filter_running
       BUFFERLEN_MAX = 11,  // Maximal valid buffer length
       BUFFERLEN_DEF = 5,   // Default buffer length
     };
+    typedef uint8_t test[Limits::BUFFERLEN_MIN];
 
     uint16_t *_buffer = NULL; // Dynamic data buffer
     uint16_t _valueMin;
