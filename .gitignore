@@ -1,3 +1,9 @@
+# Development environment
+.*.*
+.pio
+.vscode
+.clang-format
+
 # Compiled Object files
 *.slo
 *.lo
@@ -15,6 +21,7 @@
 
 # Fortran module files
 *.mod
+*.smod
 
 # Compiled Static libraries
 *.lai
@@ -26,6 +33,3 @@
 *.exe
 *.out
 *.app
-
-# Notepad++ sesions
-*.npp

@@ -1,6 +1,6 @@
 /*
   NAME:
-  Usage of gbj_filter_Running library with all statistics.
+  Usage of library with all statistics.
 
   DESCRIPTION:
   This sketch demonstrates the use of Running statistics with determining all
@@ -17,8 +17,8 @@
   CREDENTIALS:
   Author: Libor Gabaj
 */
-#include "gbj_filter_running.h"
-#define SKETCH "GBJ_FILTER_RUNNING_ALL 1.1.0"
+#include "gbj_running.h"
+#define SKETCH "GBJ_RUNNING_ALL 1.2.0"
 
 const unsigned int PERIOD_MEASURE = 3000; // Time in miliseconds between measurements
 
@@ -27,23 +27,23 @@ const unsigned int SENSOR_DATA_MIN = 0;
 const unsigned int SENSOR_DATA_MAX = 1023;
 
 // Valid range of values ensured by filtering
-const unsigned int SENSOR_FILTER_MIN = 128;
-const unsigned int SENSOR_FILTER_MAX = 768;
+const unsigned int SENSOR_MIN = 128;
+const unsigned int SENSOR_MAX = 768;
 
 // Variables and constants for measurement
 unsigned int demoData;
 unsigned int filterAvg, filterMed, filterMin, filterMax; // Running statistics
-gbj_filter_running RunningAvg = gbj_filter_running(gbj_filter_running::AVERAGE, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN);
-gbj_filter_running RunningMed = gbj_filter_running(gbj_filter_running::MEDIAN, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN);
-gbj_filter_running RunningMin = gbj_filter_running(gbj_filter_running::MINIMUM, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN);
-gbj_filter_running RunningMax = gbj_filter_running(gbj_filter_running::MAXIMUM, SENSOR_FILTER_MAX, SENSOR_FILTER_MIN);
+gbj_running RunningAvg = gbj_running(gbj_running::AVERAGE, SENSOR_MAX, SENSOR_MIN);
+gbj_running RunningMed = gbj_running(gbj_running::MEDIAN, SENSOR_MAX, SENSOR_MIN);
+gbj_running RunningMin = gbj_running(gbj_running::MINIMUM, SENSOR_MAX, SENSOR_MIN);
+gbj_running RunningMax = gbj_running(gbj_running::MAXIMUM, SENSOR_MAX, SENSOR_MIN);
 
 void setup()
 {
   Serial.begin(9600);
   Serial.println(SKETCH);
   Serial.println("Libraries:");
-  Serial.println(gbj_filter_running::VERSION);
+  Serial.println(gbj_running::VERSION);
   Serial.println(gbj_apphelpers::VERSION);
   Serial.println("---");
   Serial.print("Buffer length: ");

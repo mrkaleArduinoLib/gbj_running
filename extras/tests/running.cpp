@@ -1,6 +1,6 @@
 /*
   NAME:
-  Unit tests of library "gbj_filter_running" for smoothing.
+  Unit tests of library "gbj_running" for smoothing.
 
   DESCRIPTION:
   The test suite provides test cases for calculating filtered value for two
@@ -16,7 +16,7 @@
 */
 #include <Arduino.h>
 #include <unity.h>
-#include <gbj_filter_running.h>
+#include "gbj_running.h"
 
 // Valid range of values ensured by filtering
 const unsigned int SENSOR_FILTER_MIN = 128;
@@ -29,7 +29,7 @@ uint16_t statistic;
 
 void test_running_average(void)
 {
-    gbj_filter_running Filter = gbj_filter_running(gbj_filter_running::AVERAGE,
+    gbj_running Filter = gbj_running(gbj_running::AVERAGE,
         SENSOR_FILTER_MAX, SENSOR_FILTER_MIN, SMOOTH_SAMPLES);
     // Running medians {423, 588, 464, 464, 464, 526, 567}
     byte i = 0;
@@ -40,7 +40,7 @@ void test_running_average(void)
 
 void test_running_median(void)
 {
-    gbj_filter_running Filter = gbj_filter_running(gbj_filter_running::MEDIAN,
+    gbj_running Filter = gbj_running(gbj_running::MEDIAN,
         SENSOR_FILTER_MAX, SENSOR_FILTER_MIN, SMOOTH_SAMPLES);
     // Running medians {423, 423, 423, 423, 423, 423, 712}
     byte i = 0;
@@ -51,7 +51,7 @@ void test_running_median(void)
 
 void test_running_minimum(void)
 {
-    gbj_filter_running Filter = gbj_filter_running(gbj_filter_running::MINIMUM,
+    gbj_running Filter = gbj_running(gbj_running::MINIMUM,
         SENSOR_FILTER_MAX, SENSOR_FILTER_MIN, SMOOTH_SAMPLES);
     // Running medians {423, 423, 217, 217, 217, 217, 217}
     byte i = 0;
@@ -62,7 +62,7 @@ void test_running_minimum(void)
 
 void test_running_maximum(void)
 {
-    gbj_filter_running Filter = gbj_filter_running(gbj_filter_running::MAXIMUM,
+    gbj_running Filter = gbj_running(gbj_running::MAXIMUM,
         SENSOR_FILTER_MAX, SENSOR_FILTER_MIN, SMOOTH_SAMPLES);
     // Running medians {423, 753, 753, 753, 753, 753, 753}
     byte i = 0;

@@ -1,6 +1,6 @@
 /*
   NAME:
-  Basic usage of gbj_filter_running library.
+  Basic usage of library.
 
   DESCRIPTION:
   This sketch demonstrates the use of running statistics without determining
@@ -17,8 +17,8 @@
   CREDENTIALS:
   Author: Libor Gabaj
 */
-#include "gbj_filter_running.h"
-#define SKETCH "GBJ_FILTER_RUNNING_AVERAGE 1.1.0"
+#include "gbj_running.h"
+#define SKETCH "GBJ_RUNNING_AVERAGE 1.2.0"
 
 const unsigned int PERIOD_MEASURE = 3000; // Time in miliseconds between measurements
 
@@ -27,14 +27,14 @@ const unsigned int SENSOR_DATA_MAX = 1023;
 
 // Variables and constants for measurement
 unsigned int demoData, filterData;
-gbj_filter_running avgRunning = gbj_filter_running();
+gbj_running avgRunning = gbj_running();
 
 void setup()
 {
   Serial.begin(9600);
   Serial.println(SKETCH);
   Serial.println("Libraries:");
-  Serial.println(gbj_filter_running::VERSION);
+  Serial.println(gbj_running::VERSION);
   Serial.println(gbj_apphelpers::VERSION);
   Serial.println("---");
   // Print header

@@ -5,7 +5,7 @@
 ##########################################
 # Datatypes (KEYWORD1)
 ##########################################
-gbj_filter_running	KEYWORD1
+gbj_running	KEYWORD1
 
 ##########################################
 # Methods and Functions (KEYWORD2)

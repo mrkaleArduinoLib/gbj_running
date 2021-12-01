@@ -1,6 +1,6 @@
 /*
   NAME:
-  gbj_filter_running
+  gbj_running
 
   DESCRIPTION:
   The library provides calculation of a running statistic value from
@@ -19,10 +19,10 @@
 
   CREDENTIALS:
   Author: Libor Gabaj
-  GitHub: https://github.com/mrkaleArduinoLib/gbj_filter_running.git
+  GitHub: https://github.com/mrkaleArduinoLib/gbj_running.git
 */
-#ifndef GBJ_FILTER_RUNNING_H
-#define GBJ_FILTER_RUNNING_H
+#ifndef GBJ_RUNNING_H
+#define GBJ_RUNNING_H
 
 #if defined(__AVR__)
   #if ARDUINO >= 100
@@ -36,14 +36,14 @@
 #elif defined(PARTICLE)
   #include "Particle.h"
 #endif
-#include <gbj_apphelpers.h>
+#include "gbj_apphelpers.h"
 
 
 // Macro functions
 #define divide(a, b) { (uint16_t)round((float)(a)/(float)(b)) }
 
 
-class gbj_filter_running
+class gbj_running
 {
   public:
     static const String VERSION;
@@ -104,7 +104,7 @@ class gbj_filter_running
       RETURN:
       Library instance object.
     */
-    gbj_filter_running(
+    gbj_running(
         uint8_t statisticType = Statistics::AVERAGE,
         uint16_t valueMax = Limits::FILTER_MAX,
         uint16_t valueMin = Limits::FILTER_MIN,
@@ -122,7 +122,7 @@ class gbj_filter_running
 
       RETURN: none
     */
-    inline void init() { _bufferCnt = 0; };
+    inline void init() { bufferCnt_ = 0; };
 
     /*
       Calculate new running statistic for current sensor value or get last one.
@@ -149,19 +149,19 @@ class gbj_filter_running
       New running statistic or the recently stored one if the value is not valid.
     */
     uint16_t getStatistic(uint16_t currentValue);
-    inline uint16_t getStatistic(void) { return _statisticRecent; };
+    inline uint16_t getStatistic(void) { return statisticRecent_; };
 
     // Public getters
-    inline uint8_t getStatisticType() { return _statisticType; };
+    inline uint8_t getStatisticType() { return statisticType_; };
 
-    inline uint8_t getReadings() { return _bufferCnt; };
-    inline uint16_t getValueMin() { return _valueMin; };
-    inline uint16_t getValueMax() { return _valueMax; };
+    inline uint8_t getReadings() { return bufferCnt_; };
+    inline uint16_t getValueMin() { return valueMin_; };
+    inline uint16_t getValueMax() { return valueMax_; };
     //
     static inline uint16_t getFilterMin() { return Limits::FILTER_MIN; };
     static inline uint16_t getFilterMax() { return Limits::FILTER_MAX; };
     //
-    inline uint8_t getBufferLen() { return _bufferLen; };
+    inline uint8_t getBufferLen() { return bufferLen_; };
     static inline uint8_t getBufferLenMin() { return Limits::BUFFERLEN_MIN; };
     static inline uint8_t getBufferLenMax() { return Limits::BUFFERLEN_MAX; };
     static inline uint8_t getBufferLenDef() { return Limits::BUFFERLEN_DEF; };
@@ -169,12 +169,12 @@ class gbj_filter_running
     // Public setters
     inline void setFilterMax(uint16_t valueMax)
     {
-      _valueMax = constrain(valueMax, getFilterMin(), getFilterMax());
+      valueMax_ = constrain(valueMax, getFilterMin(), getFilterMax());
     };
 
     inline void setFilterMin(uint16_t valueMin)
     {
-      _valueMin = constrain(valueMin, Limits::FILTER_MIN, Limits::FILTER_MAX);
+      valueMin_ = constrain(valueMin, Limits::FILTER_MIN, Limits::FILTER_MAX);
     };
 
     inline void setFilter(uint16_t valueMax, uint16_t valueMin)
@@ -186,16 +186,16 @@ class gbj_filter_running
     inline void setBufferLen(uint8_t bufferLen)
     {
       // Adjust buffer length to odd number
-      _bufferLen = bufferLen | 1;
-      _bufferLen = constrain(_bufferLen, getBufferLenMin(), getBufferLenMax());
+      bufferLen_ = bufferLen | 1;
+      bufferLen_ = constrain(bufferLen_, getBufferLenMin(), getBufferLenMax());
       // Create of adjust data buffer if needed
-      if (_buffer == NULL)
+      if (buffer_ == NULL)
       {
-        _buffer = (uint16_t *)calloc(getBufferLen(), sizeof(uint16_t));
+        buffer_ = (uint16_t *)calloc(getBufferLen(), sizeof(uint16_t));
       }
-      else if (getBufferLen() != sizeof(_buffer) / sizeof(_buffer[0]))
+      else if (getBufferLen() != sizeof(buffer_) / sizeof(buffer_[0]))
       {
-        _buffer = (uint16_t *)realloc(_buffer, getBufferLen() * sizeof(uint16_t));
+        buffer_ = (uint16_t *)realloc(buffer_, getBufferLen() * sizeof(uint16_t));
       }
     };
 
@@ -210,13 +210,13 @@ class gbj_filter_running
     };
     typedef uint8_t test[Limits::BUFFERLEN_MIN];
 
-    uint16_t *_buffer = NULL; // Dynamic data buffer
-    uint16_t _valueMin;
-    uint16_t _valueMax;
-    uint16_t _statisticRecent;
-    uint8_t _statisticType;
-    uint8_t _bufferLen;
-    uint8_t _bufferCnt;
+    uint16_t *buffer_ = NULL; // Dynamic data buffer
+    uint16_t valueMin_;
+    uint16_t valueMax_;
+    uint16_t statisticRecent_;
+    uint8_t statisticType_;
+    uint8_t bufferLen_;
+    uint8_t bufferCnt_;
 
     void shiftRight();
 };
