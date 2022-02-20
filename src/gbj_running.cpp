@@ -1,89 +1,80 @@
 #include "gbj_running.h"
-const String gbj_running::VERSION = "GBJ_RUNNING 1.2.0";
-
-gbj_running::gbj_running(
-  uint8_t statisticType,
-  uint16_t valueMax,
-  uint16_t valueMin,
-  uint8_t bufferLen)
-{
-  setFilter(valueMax, valueMin);
-  setBufferLen(bufferLen);
-  init();
-  statisticType_ = statisticType;
-  switch (getStatisticType())
-  {
-    case Statistics::AVERAGE:
-    case Statistics::MEDIAN:
-    case Statistics::MINIMUM:
-    case Statistics::MAXIMUM:
-      break;
-
-    default:
-      statisticType_ = Statistics::AVERAGE;
-      break;
-  }
-}
-
+const String gbj_running::VERSION = "GBJ_RUNNING 1.3.0";
 
 /* Register data item into the buffer and return running value of the statistic.
  * The most recent (fresh) sample value is always in the 0 index of the buffer.
- * The most recent (fresh) running statistic is always in the separate attribute.
+ * The most recent (fresh) running statistic is always in the separate
+ * attribute.
  */
-uint16_t gbj_running::getStatistic(uint16_t currentValue)
+float gbj_running::getValue(float value)
 {
-  if (currentValue < getValueMin() || currentValue > getValueMax())
-    return getStatistic();
-  // Make place for current value in the data buffer
-  shiftRight();
-  buffer_[0] = currentValue;
-  switch (getStatisticType())
+  shiftRight(); // Make place for input value in the data buffer
+  buffer_[0] = value;
+  switch (type_)
   {
     case Statistics::AVERAGE:
-      statisticRecent_ = 0;
-      for (uint8_t i = 0; i < getReadings(); i++)
-        statisticRecent_ += buffer_[i];
-      // Round up arithmetic mean
-      statisticRecent_ = divide(statisticRecent_, getReadings());
+      value_ = 0;
+      for (byte i = 0; i < samples_; i++)
+      {
+        value_ += buffer_[i];
+      }
+      if (samples_)
+      {
+        value_ /= samples_;
+      }
       break;
 
     case Statistics::MEDIAN:
-      uint16_t *sorter;
-      sorter = (uint16_t *)calloc(getReadings(), sizeof(uint16_t));
-      for (uint8_t i = 0; i < getReadings(); i++)
+      float *sorter;
+      sorter = (float *)calloc(samples_, sizeof(float));
+      for (byte i = 0; i < samples_; i++)
+      {
         sorter[i] = buffer_[i];
-      gbj_apphelpers::sort_buble_asc(sorter, getReadings());
-      // Round down median index
-      statisticRecent_ = sorter[(getReadings() - 1) / 2];
+      }
+      gbj_apphelpers::sort_buble_asc(sorter, samples_);
+      // Return middle item at odd items in the buffer
+      if (samples_ % 2)
+      {
+        value_ = sorter[(samples_ - 1) / 2];
+      }
+      // Calculate from two middle items at event items in the buffer
+      else
+      {
+        value_ =
+          (sorter[samples_ / 2 - 1] + sorter[samples_ / 2]) / 2.0;
+      }
       free(sorter);
       break;
 
     case Statistics::MINIMUM:
-      statisticRecent_ = currentValue;
-      for (uint8_t i = 1; i < getReadings(); i++)
-        statisticRecent_ = min(statisticRecent_, buffer_[i]);
+      value_ = value;
+      for (byte i = 1; i < samples_; i++)
+      {
+        value_ = min(value_, buffer_[i]);
+      }
       break;
 
     case Statistics::MAXIMUM:
-      statisticRecent_ = currentValue;
-      for (uint8_t i = 1; i < getReadings(); i++)
-        statisticRecent_ = max(statisticRecent_, buffer_[i]);
+      value_ = value;
+      for (byte i = 1; i < samples_; i++)
+      {
+        value_ = max(value_, buffer_[i]);
+      }
       break;
   }
-  return getStatistic();
+  return value_;
 }
-
 
 // Shift array to the right so that 0 index is reserved for the new value
 void gbj_running::shiftRight()
 {
-  for (byte i = getReadings(); i > 0; --i)
+  for (byte i = samples_; i > 0; --i)
   {
     // Forget the oldest (most right) value in the buffer if it is full
-    if (i < getBufferLen())
-      buffer_[i] = buffer_[i-1];
+    if (i < Params::SAMPLES)
+      buffer_[i] = buffer_[i - 1];
   }
   // Count the freed 0 indexed value. Normally the buffer is full.
-  bufferCnt_++;
-  bufferCnt_ = constrain(getReadings(), 0, getBufferLen());
+  samples_++;
+  samples_ = constrain(samples_, 0, Params::SAMPLES);
 }

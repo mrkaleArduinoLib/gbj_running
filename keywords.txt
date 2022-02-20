@@ -5,28 +5,26 @@
 ##########################################
 # Datatypes (KEYWORD1)
 ##########################################
-gbj_running	KEYWORD1
 
 ##########################################
 # Methods and Functions (KEYWORD2)
 ##########################################
-getBufferLen	KEYWORD2
-getBufferLenDef	KEYWORD2
-getBufferLenMax	KEYWORD2
-getBufferLenMin	KEYWORD2
-getFilterMax	KEYWORD2
-getFilterMin	KEYWORD2
-getReadings	KEYWORD2
-getStatistic	KEYWORD2
-getStatisticType	KEYWORD2
-getValueMax	KEYWORD2
-getValueMin	KEYWORD2
+gbj_running	KEYWORD2
 init	KEYWORD2
-setBufferLen	KEYWORD2
-setFilter	KEYWORD2
-setFilterMax	KEYWORD2
-setFilterMin	KEYWORD2
+getValue	KEYWORD2
+getType	KEYWORD2
+getSamples	KEYWORD2
+setAverage	KEYWORD2
+setMedian	KEYWORD2
+setMinimum	KEYWORD2
+setMaximum	KEYWORD2
 
 ##########################################
 # Constants (LITERAL1)
 ##########################################
+VERSION	LITERAL1
+SAMPLES	LITERAL1
+AVERAGE	LITERAL1
+MEDIAN 	LITERAL1
+MINIMUM	LITERAL1
+MAXIMUM	LITERAL1

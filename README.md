@@ -1,35 +1,52 @@
 <a id="library"></a>
 
-# gbjFilterRunning
-The library provides calculation of a running statistic value from recent sensor readings including the current one that are stored in the library instance object in 16-bit resolution, i.e., average, median, minimum, and maximum.
+# gbj_running
+The library statistically smooths a data serie by running statistics, namely `average`, `median`, `minimum`, or `maximum`. It calculates a new smoothed value from a couple of previously provided values.
+
+## Fundamental functionality
+* The library stores 5 recently provided values, e.g., samples from a sensor reading, and calculates particular statistical value right after it from those values.
+* The library instance object acts as a sample cache for recent samples.
+* The library does not define a valid range of values to be smoothed. That range and checking values against it should be provided externally.
 
 
 <a id="dependency"></a>
 
 ## Dependency
-
-#### Particle platform
-* **Particle.h**: Includes alternative (C++) data type definitions.
+* **gbj_apphelpers**: Library for generic logics and calculations loaded from file `gbj_apphelpers.h`.
 
 #### Arduino platform
 * **Arduino.h**: Main include file for the Arduino SDK version greater or equal to 100.
-* **WProgram.h**: Main include file for the Arduino SDK version less than 100.
 * **inttypes.h**: Integer type conversions. This header file includes the exact-width integer definitions and extends them with additional facilities provided by the implementation.
 
-#### Custom Libraries
-* **gbjAppHelpers**: Custom library loaded from the file *gbj\_apphelpers.h* for a generic application logic.
+#### Espressif platform
+* **Arduino.h**: Main include file for the Arduino platform.
+
+#### Particle platform
+* **Particle.h**: Includes alternative (C++) data type definitions.
+* **math.h**: Includes standard C++ mathematics, needed for fabs().
+
+
+<a id="tests"></a>
+
+## Unit testing
+The subfolder `tests` in the folder `extras`, i.e., `gbj_running/extras/test`, contains testing files, usually just one, with unit tests of library [gbj_running](#library) executable by [Unity](http://www.throwtheswitch.org/unity) test runner. Each testing file should be placed in an individual test folder of a particular project, usually in the structure `test/<testname>/<testfile>`.
+* **test_running.cpp**: Test file providing test cases for statistical smoothing calculation and relevant public methods and parameters.
 
 
 <a id="constants"></a>
 
 ## Constants
-All constants are embedded into the class as static ones.
+All constants are embedded into the class as static ones or as enumerations literals.
 
-* **gbj\_running::VERSION**: Name and semantic version of the library.
-* **gbj\_running::AVERAGE**: Average (arithmetic mean) as a running statistic.
-* **gbj\_running::MEDIAN**: Median (50% percentile) as a running statistic.
-* **gbj\_running::MAXIMUM**: Maximum as a running statistic.
-* **gbj\_running::MINIMUM**: Minimum as a running statistic.
+* **VERSION**: Name and semantic version of the library.
+* **SAMPLES**: Number of recently provided sample values for running statistics. The constant is a literal of the internal enumeration `Params : byte`. The value of the constant is `5`.
+
+### Statistic types
+Constants are literals of the internal enumeration `Statistics : byte`.
+* **AVERAGE**: Average (arithmetic mean) as a running statistic.
+* **MEDIAN**: Median (50% percentile) as a running statistic.
+* **MAXIMUM**: Maximum as a running statistic.
+* **MINIMUM**: Minimum as a running statistic.
 
 
 <a id="interface"></a>
@@ -37,26 +54,17 @@ All constants are embedded into the class as static ones.
 ## Interface
 * [gbj_running()](#gbj_running)
 * [init()](#init)
-* [getStatistic()](#getStatistic)
+
+### Getters
+* [getValue()](#getValue)
+* [getType()](#getType)
+* [getSamples()](#getSamples)
 
 #### Setters
-* [setFilter()](#setFilter)
-* [setFilterMin()](#setFilter)
-* [setFilterMax()](#setFilter)
-* [setBufferLen()](#setBufferLen)
-
-#### Getters
-* [getStatistic()](#getStatistic)
-* [getStatisticType()](#getStatisticType)
-* [getValueMin()](#getValueRange)
-* [getValueMax()](#getValueRange)
-* [getFilterMin()](#getFilterRange)
-* [getFilterMax()](#getFilterRange)
-* [getBufferLen()](#getBufferLen)
-* [getBufferLenDef()](#getBufferLenStatic)
-* [getBufferLenMin()](#getBufferLenStatic)
-* [getBufferLenMax()](#getBufferLenStatic)
-* [getReadings()](#getReadings)
+* [setAverage()](#setType)
+* [setMedian()](#setType)
+* [setMinimum()](#setType)
+* [setMaximum()](#setType)
 
 
 <a id="gbj_running"></a>
@@ -64,72 +72,28 @@ All constants are embedded into the class as static ones.
 ## gbj_running()
 
 #### Description
-Constructor creates the data buffer within a class instance object, which holds a series of running values of particular statistical type.
-* For each type of running statistic as well as each statistical variable (sensor) a separate instance object has to be created with separated data buffer.
-* Running values of sensor readings or smoothed sensor readings reduce excesses and extremes in the physical value measurement.
-* The class may be used for original digital data as well, where the running statistical processing is desirable.
+Constructor defines default statistic type for calculation and initiates the internal data buffer acting as the cache within a class instance object, which keeps a serie of provided values, e.g., samples from a sensor's reading, for calculating a running statistic of the statistic type.
+* For each type of running statistic as well as each statistical measure (sensor) a separate instance object has to be created.
+* Running values of samples from sensor reading reduce excesses and extremes in the physical value measurement.
 
 #### Syntax
-    gbj_running(uint8_t runningType, uint16_t valueMax, uint16_t valueMin, uint8_t bufferLen)
+    gbj_running(Statistics type)
 
 #### Parameters
-<a id="prm_statisticType"></a>
-* **statisticType**: Constant defining type of the running statistic to be calculated.
-  * *Valid values*: [gbj\_running::AVERAGE, gbj\_running::MEDIAN, gbj\_running::MAXIMUM, gbj\_running::MINIMUM](#constants)
-  * *Default value*: [gbj\_running::AVERAGE](#constants)
-
-<a id="prm_valueMax"></a>
-* **valueMax**: Maximal valid sensor value for registering.
-  * *Valid values*: non-negative integer 0 to 65365
-  * *Default value*: 65365
-
-<a id="prm_valueMin"></a>
-* **valueMin**: Minimal valid sensor value for registering.
-  * *Valid values*: non-negative integer 0 to 65365
-  * *Default value*: 0
-
-<a id="prm_bufferLen"></a>
-* **bufferLen**: Number of running statistics held in the data buffer used for calculating a new running statistic.
-  * The constructor limits the input buffer length to a valid range.
-  * The buffer length should be odd number. If it is not, the constructor adds 1 to it right before limiting the length in order to make it odd.
-  * *Valid values*: positive integer in the range 3 to 11
-  * *Default value*: 5
+* **type**: Optional constant determining type of the default running statistic to be applied at calculations.
+  * *Valid values*: one from constants for [statistic types](#constants)
+  * *Default value*: gbj\_running::AVERAGE
 
 #### Returns
 Object preforming a running statistic calculation.
 
 #### Example
-The constructor has all arguments defaulted. The constructor instance without any parameters is equivalent to an instance with all arguments set by corresponding static getters for default values:
-
 ``` cpp
-gbj_running RunningAvg = gbj_running(); // It is equivalent to
-gbj_running RunningAvg = gbj_running(
-  gbj_running::AVERAGE,
-  gbj_smoothing::getFilterMax(), gbj_smoothing::getFilterMin(),
-  gbj_smoothing::getBufferLenDef());
+gbj_running runAvg = gbj_running(); // It is equivalent to
+gbj_running runAvg = gbj_running(gbj_running::AVERAGE);
 ```
-
-If some argument after some defaulted arguments should have a specific value, use corresponding getter in place of those defaulted arguments, e.g.
-
-``` cpp
-gbj_running RunningAvg = gbj_running(gbj_running::AVERAGE,
-  gbj_smoothing::getFilterMax(), gbj_smoothing::getFilterMin(), 11); // Specific buffer length
-```
-
-Typical usage is just with setting a desired statistical type in the constructor:
-
-``` cpp
-gbj_running RunningAvg = gbj_running(); // Only default arguments - running average
-gbj_running RunningMed = gbj_running(gbj_running::MEDIAN, 1023);      // Running median with maximal value filtering
-gbj_running RunningMax = gbj_running(gbj_running::MAXIMUM, 768, 16);  // Running maximum with valid value range filtering
-```
-
 #### See also
-[setFilterMax()](#setFilter)
-
-[setFilterMin()](#setFilter)
-
-[setFilter()](#setFilter)
+[setAverage(), setMedian(), setMinimum(), setMaximum](#setType)
 
 [Back to interface](#interface)
 
@@ -139,7 +103,7 @@ gbj_running RunningMax = gbj_running(gbj_running::MAXIMUM, 768, 16);  // Running
 ## init()
 
 #### Description
-The method initiates all internal counters and status flags of a class instance object to default values as they are right after power up of a microcontroller.
+The method initiates all internal resources of a class instance object to default values as they are right after a library instance object.
 
 #### Syntax
     void init()
@@ -153,30 +117,48 @@ None
 [Back to interface](#interface)
 
 
-<a id="getStatistic"></a>
+<a id="getValue"></a>
 
-## getStatistic()
+## getValue()
 
 #### Description
-The method is overloaded.
-* If an input argument is provided, it calculates and returns a new running statistic of a type defined in constructor parameter [statisticType](#prm_statisticType) from the current input value and previous values and stores it in the data buffer for the future calculation.
-* If no input argument is provided,the method returns the recently calculated running statistics without need of new measured value (sample) or recalculation.
-  * This variant of the method is declared as a static getter.
-  * The same effect can be achieved by inputting the value outside the current filter.
-  * The method is useful if there is no variable used for the running statistic in an application and the recent statistic is needed.
+The method is overloaded and returns a result of the recent smoothing calculation.
+* If an input argument is provided, it calculates and returns a new running statistic of a type defined in [constructor](#gbj_running) or corresponding [setter](#setType) from the input value and previously stored ones in the cache. This value is stored in the internal cache for the future calculation. At the same time the last value in the cache is removed.
+* If no input argument is provided, the method returns the recently calculated running statistic without need of new recalculation.
+* If the method without input value is used before the first using the method with input value since initiation either by creating the [instance object](#gbj_running) or calling the  method [init()](#init), the `0` is retuned as a default statistic value.
+* The method is useful if there is no variable used for the running statistic in an application and the recent statistic is needed.
+* The method can be used as a "last good value" at external filtering against a valid range of values.
 
 #### Syntax
-    uint16_t getStatistic(uint16_t currentValue)
-    uint16_t getStatistic()
+    float getValue(float value)
+    float getValue()
 
 #### Parameters
-<a id="prm_currentValue"></a>
-* **currentValue**: 16-bit value to be used for calculating a new running statistic.
-  * *Valid values*: non-negative integer 0 ~ 65535, but restricted by current filter range
+* **value**: Value (sample) to be used for calculating a new running statistic.
+  * *Valid values*: rational number
   * *Default value*: none
 
 #### Returns
-Running statistic or recently stored running statistic.
+Running statistic of default statistic type or recently calculated running statistic.
+
+[Back to interface](#interface)
+
+
+<a id="getType"></a>
+
+## getType()
+
+#### Description
+The method returns internal number code representing the statistic type by some of the [constants](#constants) for statistic types.
+
+#### Syntax
+    Statistics getType()
+
+#### Parameters
+None
+
+#### Returns
+Code of actual running statistic type defined by one of constants for [statistic types](#constants).
 
 #### See also
 [gbj_running()](#gbj_running)
@@ -184,218 +166,53 @@ Running statistic or recently stored running statistic.
 [Back to interface](#interface)
 
 
-<a id="getStatisticType"></a>
+<a id="getSamples"></a>
 
-## getStatisticType()
+## getSamples()
 
 #### Description
-The method returns internal number code (defined by corresponding library constant) of running statistic type for the current instance object.
+The method returns current number of samples in the internal cache, which are going to be used for calculating running statistics.
+* The calculation of a running value can be provided before the cache is full. It happens at start of the smoothing process after initialization by either creating the [instance object](#gbj_running) or calling the method [init()](#init). In that case the method returns the number less than the length of the buffer defined by the constant [SAMPLES](#constants).
 
 #### Syntax
-    uint8_t getStatisticType()
+    byte getSamples()
 
 #### Parameters
 None
 
 #### Returns
-Code of actual running statistic type defined by one of constants [gbj\_running::AVERAGE, gbj\_running::MEDIAN, gbj\_running::MAXIMUM, gbj\_running::MINIMUM](#constants).
-
-#### See also
-[gbj_running()](#gbj_running)
+Actual number of samples in the cache.
 
 [Back to interface](#interface)
 
 
-<a id="setFilter"></a>
-## setFilter(), setFilterMin(), setFilterMax()
-#### Description
-The corresponding method redefines minimal, maximal, or both valid values for registered sensor data set in the constructor defined there by default or explicitly.
+<a id="setType"></a>
 
-#### Syntax
-    void setFilter(uint16_t valueMax, uint16_t valueMin)
-    void setFilterMin(uint16_t valueMin)
-    void setFilterMax(uint16_t valueMax)
-
-#### Parameters
-
-* **valueMax**: Maximal valid sensor value for registering.
-  * *Valid values*: as in the constructor argument [valueMax](#prm_valueMax)
-  * *Default value*: as in the constructor argument [valueMax](#prm_valueMax)
-
-
-* **valueMin**: Minimal valid sensor value for registering.
-  * *Valid values*: as in the constructor argument [valueMin](#prm_valueMin)
-  * *Default value*: as in the constructor argument [valueMin](#prm_valueMin)
-
-#### Returns
-None
-
-#### See also
-[getValueMin()](#getValueRange)
-
-[getValueMax()](#getValueRange)
-
-[gbj_smoothing()](#gbj_smoothing)
-
-[registerData()](#registerData)
-
-[Back to interface](#interface)
-
-
-<a id="getValueRange"></a>
-
-## getValueMin(), getValueMax()
+## setAverage(), setMedian(), setMinimum(), setMaximum
 
 #### Description
-The corresponding method returns currently set minimal or maximal value valid for calculation.
+The particular method sets the corresponding statistic type as the default one.
+* The running statistic is calculated for that type on without change in the internal cache.
+* The methods are useful in conjunction with the constructor without input value.
 
 #### Syntax
-    uint16_t getValueMin()
-    uint16_t getValueMax()
+    void setAverage()
+    void setMedian()
+    void setMinimum()
+    void setMaximum()
 
 #### Parameters
 None
 
 #### Returns
-Actual minimal or maximal value of the valid data range.
-
-#### See also
-[setFilter()](#setFilter)
-
-[setFilterMin()](#setFilter)
-
-[setFilterMax()](#setFilter)
-
-[Back to interface](#interface)
-
-
-<a id="getFilterRange"></a>
-
-## getFilterMin(), getFilterMax()
-
-#### Description
-The corresponding static method returns hardcoded limit of minimal or maximal value valid for calculation.
-
-#### Syntax
-    uint16_t getFilterMin()
-    uint16_t getFilterMax()
-
-#### Parameters
 None
 
-#### Returns
-Minimal or maximal limit of the valid data range.
-
+#### Example
+``` cpp
+gbj_running runAvg = gbj_running(); // Defaulted to Average
+runAvg.setMedian();
+```
 #### See also
-[getValueMin()](#getValueRange)
-
-[getValueMax()](#getValueRange)
-
-[Back to interface](#interface)
-
-
-<a id="setBufferLen"></a>
-
-## setBufferLen()
-
-#### Description
-The method redefines length of the data buffer used for registering sensor data, i.e., the number of data samples used for calculating a running statistic set in the constructor and defined there by default or explicitly.
-
-#### Syntax
-    void setBufferLen(uint8_t bufferLen)
-
-#### Parameters
-* **bufferLen**: Number of 16-bit values, which a statistical value is going to be calculated from.
-  * *Valid values*: as in the constructor argument [bufferLen](#prm_bufferLen)
-  * *Default value*: as in the constructor argument [bufferLen](#prm_bufferLen)
-
-#### Returns
-None
-
-#### See also
-[getBufferLen()](#getBufferLen)
-
-[gbj_running()](#gbj_running)
-
-[Back to interface](#interface)
-
-
-<a id="getBufferLen"></a>
-
-## getBufferLen()
-
-#### Description
-The method returns current length of the data buffer used for calculation.
-* Usually the returned value is the same as length put to the constructor parameter [bufferLen](#prm_bufferLen).
-* If class has adjusted or limited the input buffer length, the method returns the actual length.
-* The method is useful, if the length has been put to the constructor as a numeric literal and there is no variable of the length to use it in other statements.
-
-#### Syntax
-    uint8_t getBufferLen()
-
-#### Parameters
-None
-
-#### Returns
-Actual length of the data buffer.
-
-#### See also
-[setBufferLen()](#setBufferLen)
-
-[gbj_running()](#gbj_running)
-
-[getReadings()](#getReadings)
-
-[Back to interface](#interface)
-
-
-<a id="getBufferLenStatic"></a>
-
-## getBufferLenDef(), getBufferLenMin(), getBufferLenMax()
-
-#### Description
-The corresponding static method returns hardcoded default value or valid limit of length of the data buffer used for registering sensor data.
-
-#### Syntax
-    uint8_t getBufferLenDef()
-    uint8_t getBufferLenMin()
-    uint8_t getBufferLenMax()
-
-#### Parameters
-None
-
-#### Returns
-Default, minimal, or maximal length of the data buffer.
-
-#### See also
-[getBufferLen()](#getBufferLen)
-
-[Back to interface](#interface)
-
-
-<a id="getReadings"></a>
-
-## getReadings()
-
-#### Description
-The method returns number of running values of a statistic in the data buffer, which are going to be used for calculating a new one.
-* The calculation of a new running value can be provided before the data buffer is full. In that case the method returns the number less than the length of the data buffer set in the constructor parameter [bufferLen](#prm_bufferLen).
-* After a while after initialization the returned value is same as the length of the data buffer.
-
-#### Syntax
-    uint8_t getReadings()
-
-#### Parameters
-None
-
-#### Returns
-Actual number of running values of a statistic in the data buffer.
-
-#### See also
-[setBufferLen()](#setBufferLen)
-
-[getBufferLen()](#getBufferLen)
-
 [gbj_running()](#gbj_running)
 
 [Back to interface](#interface)
