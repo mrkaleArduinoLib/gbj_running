@@ -161,7 +161,7 @@ private:
   Statistics type_;
   byte samples_;
   float buffer_[Params::SAMPLES];
-  float value_ = 0; // Should be init due to hw repre 0.
+  float value_;
 
   void shiftRight();
 };

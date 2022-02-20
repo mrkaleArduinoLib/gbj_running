@@ -103,7 +103,7 @@ gbj_running runAvg = gbj_running(gbj_running::AVERAGE);
 ## init()
 
 #### Description
-The method initiates all internal resources of a class instance object to default values as they are right after a library instance object.
+The method initiates all internal resources of a class instance object to default values as they are right after creating a library instance object.
 
 #### Syntax
     void init()
@@ -135,7 +135,7 @@ The method is overloaded and returns a result of the recent smoothing calculatio
 
 #### Parameters
 * **value**: Value (sample) to be used for calculating a new running statistic.
-  * *Valid values*: rational number
+  * *Valid values*: float
   * *Default value*: none
 
 #### Returns
