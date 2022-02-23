@@ -125,7 +125,7 @@ None
 The method is overloaded and returns a result of the recent smoothing calculation.
 * If an input argument is provided, it calculates and returns a new running statistic of a type defined in [constructor](#gbj_running) or corresponding [setter](#setType) from the input value and previously stored ones in the cache. This value is stored in the internal cache for the future calculation. At the same time the last value in the cache is removed.
 * If no input argument is provided, the method returns the recently calculated running statistic without need of new recalculation.
-* If the method without input value is used before the first using the method with input value since initiation either by creating the [instance object](#gbj_running) or calling the  method [init()](#init), the `0` is retuned as a default statistic value.
+* If the method without input value is used before the first using the method with input value since initiation either by creating the [instance object](#gbj_running) or calling the method [init()](#init), the `0` is retuned as a default statistic value.
 * The method is useful if there is no variable used for the running statistic in an application and the recent statistic is needed.
 * The method can be used as a "last good value" at external filtering against a valid range of values.
 

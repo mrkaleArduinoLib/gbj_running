@@ -1,5 +1,4 @@
 #include "gbj_running.h"
-const String gbj_running::VERSION = "GBJ_RUNNING 1.3.0";
 
 /* Register data item into the buffer and return running value of the statistic.
  * The most recent (fresh) sample value is always in the 0 index of the buffer.

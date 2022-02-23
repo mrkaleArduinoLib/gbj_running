@@ -43,7 +43,7 @@
 class gbj_running
 {
 public:
-  static const String VERSION;
+  const String VERSION = "GBJ_RUNNING 1.3.0";
 
   enum Statistics : byte
   {
