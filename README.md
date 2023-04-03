@@ -1,10 +1,10 @@
 <a id="library"></a>
 
-# gbj_running
+# gbj\_running
 The library statistically smooths a data serie by running statistics, namely `average`, `median`, `minimum`, or `maximum`. It calculates a new smoothed value from a couple of previously provided values.
 
 ## Fundamental functionality
-* The library stores 5 recently provided values, e.g., samples from a sensor reading, and calculates particular statistical value right after it from those values.
+* The library stores `5` recently provided values, e.g., samples from a sensor reading, and calculates particular statistical value right after it from those values.
 * The library instance object acts as a sample cache for recent samples.
 * The library does not define a valid range of values to be smoothed. That range and checking values against it should be provided externally.
 
@@ -38,7 +38,6 @@ The subfolder `tests` in the folder `extras`, i.e., `gbj_running/extras/test`, c
 ## Constants
 All constants are embedded into the class as static ones or as enumerations literals.
 
-* **VERSION**: Name and semantic version of the library.
 * **SAMPLES**: Number of recently provided sample values for running statistics. The constant is a literal of the internal enumeration `Params : byte`. The value of the constant is `5`.
 
 ### Statistic types
@@ -69,7 +68,7 @@ Constants are literals of the internal enumeration `Statistics : byte`.
 
 <a id="gbj_running"></a>
 
-## gbj_running()
+## gbj\_running()
 
 #### Description
 Constructor defines default statistic type for calculation and initiates the internal data buffer acting as the cache within a class instance object, which keeps a serie of provided values, e.g., samples from a sensor's reading, for calculating a running statistic of the statistic type.

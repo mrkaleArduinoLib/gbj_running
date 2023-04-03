@@ -1,6 +1,6 @@
 {
   "name": "gbjFilterRunning",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "keywords": "data processing, filtering, running, statistics",
   "description": "Library for calculating a running statistic values, namely running median, average, minimum, and maximum.",
   "repository": {

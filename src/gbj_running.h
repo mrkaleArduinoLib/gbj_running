@@ -43,8 +43,6 @@
 class gbj_running
 {
 public:
-  const String VERSION = "GBJ_RUNNING 1.3.0";
-
   enum Statistics : byte
   {
     AVERAGE,
